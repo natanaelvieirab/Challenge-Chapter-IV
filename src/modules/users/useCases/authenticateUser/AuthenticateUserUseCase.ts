@@ -18,12 +18,12 @@ export class AuthenticateUserUseCase {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
-  ) {}
+  ) { }
 
   async execute({ email, password }: IRequest): Promise<IAuthenticateUserResponseDTO> {
     const user = await this.usersRepository.findByEmail(email);
 
-    if(!user) {
+    if (!user) {
       throw new IncorrectEmailOrPasswordError();
     }
 
@@ -33,7 +33,8 @@ export class AuthenticateUserUseCase {
       throw new IncorrectEmailOrPasswordError();
     }
 
-    const { secret, expiresIn } = authConfig.jwt;
+    const { expiresIn } = authConfig.jwt;
+    const secret = "be526d3ccf221731b831fc78974cb2f6";
 
     const token = sign({ user }, secret, {
       subject: user.id,
