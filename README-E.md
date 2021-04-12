@@ -18,7 +18,7 @@ Mapeando funcionamento do user:
 > index /users >> userRoutes >>  createUserController >> { name, email , password} >> CreateUserUseCase  
     retorna 201 >> ok
     400 >>  erro 
-
+ 
  Authenticate User
 > index / >> userRoutes /sessions >>  AuthenticateUserController >> {  email , password} >> AuthenticateUserUseCase  
     retorna json {user, token}
