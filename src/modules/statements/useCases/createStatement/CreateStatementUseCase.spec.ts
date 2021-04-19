@@ -8,6 +8,7 @@ import { CreateStatementUseCase } from "./CreateStatementUseCase";
 enum OperationType {
     DEPOSIT = 'deposit',
     WITHDRAW = 'withdraw',
+    TRANSFER = 'TRANSFER'
 }
 
 let usersRepositoryInMemory: InMemoryUsersRepository;
@@ -67,6 +68,39 @@ describe("Create Statement", () => {
         });
 
         expect(statement).toHaveProperty("id");
+    });
+
+    it("Should be able to register the operation of Transfer for one user", async () => {
+
+        const userOne = await createUserUseCase.execute({
+            name: "Martha Gilbert",
+            email: "la@tomrahej.sd",
+            password: "userOne"
+        });
+
+        const userTwo = await createUserUseCase.execute({
+            name: "Ollie Lawrence",
+            email: "fonduuha@pabriod.fj",
+            password: "userTwo"
+        });
+
+        await createStatementUseCase.execute({
+            user_id: String(userOne.id),
+            type: OperationType.DEPOSIT,
+            amount: 150,
+            description: "Deposito de 150 conto"
+        });
+
+        const statementTransfer = await createStatementUseCase.execute({
+            user_id: String(userOne.id),
+            send_id: String(userTwo.id),
+            type: OperationType.TRANSFER,
+            amount: 100,
+            description: "Transferência de 100 conto "
+        });
+
+        expect(statementTransfer).toHaveProperty("id");
+
     });
 
     it("Should not be able to register the operation of withdraw for user that has no balance", () => {
