@@ -1,7 +1,7 @@
 import { getRepository, Repository } from "typeorm";
 
 import { Statement } from "../entities/Statement";
-import ICreateStatementDTO from "../useCases/createStatement/ICreateStatementDTO";
+import { ICreateStatementDTO } from "../useCases/createStatement/ICreateStatementDTO";
 import { IGetBalanceDTO } from "../useCases/getBalance/IGetBalanceDTO";
 import { IGetStatementOperationDTO } from "../useCases/getStatementOperation/IGetStatementOperationDTO";
 import { IStatementsRepository } from "./IStatementsRepository";
@@ -21,8 +21,8 @@ export class StatementsRepository implements IStatementsRepository {
       user_id,
       amount,
       description,
-      type,
-      send_id
+      send_id,
+      type
     });
 
     return await this.repository.save(statement);
@@ -39,16 +39,26 @@ export class StatementsRepository implements IStatementsRepository {
       { balance: number } | { balance: number, statement: Statement[] }
     > {
     const statement = await this.repository.find({
-      where: { user_id }
+      where: [
+        { user_id },
+        { send_id: user_id }
+      ]
     });
 
     const balance = statement.reduce((acc, operation) => {
       if (operation.type === 'deposit') {
         return acc + operation.amount;
-      } else {
+      }
+      else if (operation.type === 'transfer') {
+
+        return operation.send_id === user_id ?
+          acc + operation.amount :
+          acc - operation.amount;
+      }
+      else {
         return acc - operation.amount;
       }
-    }, 0)
+    }, 0);
 
     if (with_statement) {
       return {

@@ -5,7 +5,8 @@ export class CreateColumnSendIdInStatement1618599841280 implements MigrationInte
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.addColumn("statements", new TableColumn({
             name: "send_id",
-            type: "uuid"
+            type: "uuid",
+            isNullable: true
         }));
 
         await queryRunner.createForeignKey("statements", new TableForeignKey({

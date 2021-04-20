@@ -2,19 +2,21 @@ import { AppError } from "../../../../shared/errors/AppError";
 import { InMemoryUsersRepository } from "../../../users/repositories/in-memory/InMemoryUsersRepository";
 import { CreateUserUseCase } from "../../../users/useCases/createUser/CreateUserUseCase";
 import { InMemoryStatementsRepository } from "../../repositories/in-memory/InMemoryStatementsRepository";
+import { GetBalanceUseCase } from "../getBalance/GetBalanceUseCase";
 import { CreateStatementError } from "./CreateStatementError";
 import { CreateStatementUseCase } from "./CreateStatementUseCase";
 
 enum OperationType {
     DEPOSIT = 'deposit',
     WITHDRAW = 'withdraw',
-    TRANSFER = 'TRANSFER'
+    TRANSFER = 'transfer'
 }
 
 let usersRepositoryInMemory: InMemoryUsersRepository;
 let createUserUseCase: CreateUserUseCase;
 let statementsRepositoryInMemory: InMemoryStatementsRepository;
 let createStatementUseCase: CreateStatementUseCase;
+let getBalanceUseCase: GetBalanceUseCase;
 
 describe("Create Statement", () => {
 
@@ -23,6 +25,7 @@ describe("Create Statement", () => {
         statementsRepositoryInMemory = new InMemoryStatementsRepository();
         createUserUseCase = new CreateUserUseCase(usersRepositoryInMemory);
         createStatementUseCase = new CreateStatementUseCase(usersRepositoryInMemory, statementsRepositoryInMemory);
+        getBalanceUseCase = new GetBalanceUseCase(statementsRepositoryInMemory, usersRepositoryInMemory);
     });
 
     it("Should be able to register the operation of deposit for user", async () => {
@@ -99,8 +102,13 @@ describe("Create Statement", () => {
             description: "Transferência de 100 conto "
         });
 
-        expect(statementTransfer).toHaveProperty("id");
+        const balanceUserOne = await getBalanceUseCase.execute({ user_id: String(userOne.id) });
+        const balanceUserTwo = await getBalanceUseCase.execute({ user_id: String(userTwo.id) });
 
+        expect(statementTransfer).toHaveProperty("id");
+        expect(statementTransfer.type).toBe("transfer");
+        expect(balanceUserOne.balance).toBe(50);
+        expect(balanceUserTwo.balance).toBe(100);
     });
 
     it("Should not be able to register the operation of withdraw for user that has no balance", () => {
@@ -133,5 +141,30 @@ describe("Create Statement", () => {
             });
         }).rejects.toBeInstanceOf(CreateStatementError.UserNotFound);
 
+    });
+
+    it("Should not be able to register the operation if user transfer money for him ", async () => {
+        expect(async () => {
+            const userOne = await createUserUseCase.execute({
+                name: "Martha Gilbert",
+                email: "la@tomrahej.sd",
+                password: "userOne"
+            });
+
+            await createStatementUseCase.execute({
+                user_id: String(userOne.id),
+                type: OperationType.DEPOSIT,
+                amount: 150,
+                description: "Deposito de 150 conto"
+            });
+
+            const statementTransfer = await createStatementUseCase.execute({
+                user_id: String(userOne.id),
+                send_id: String(userOne.id),
+                type: OperationType.TRANSFER,
+                amount: 100,
+                description: "Transferência de 100 conto "
+            });
+        }).rejects.toBeInstanceOf(CreateStatementError.OperationInvalid);
     });
 });

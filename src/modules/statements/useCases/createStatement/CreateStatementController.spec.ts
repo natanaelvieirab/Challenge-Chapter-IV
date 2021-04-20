@@ -7,7 +7,8 @@ let connection: Connection;
 
 enum OperationType {
     DEPOSIT = 'deposit',
-    WITHDRAW = 'withdraw'
+    WITHDRAW = 'withdraw',
+    TRANSFER = 'transfer'
 }
 
 describe("Create Statement Controller", () => {
@@ -108,6 +109,79 @@ describe("Create Statement Controller", () => {
         expect(responseStatement.status).toBe(201);
         expect(responseStatement.body.type).toBe(OperationType.WITHDRAW);
         expect(responseStatement.body.amount).toBe(100);
+    });
+
+    it("should be able to create a new operation of transfer", async () => {
+        const userOne = {
+            name: "Etta Carroll",
+            email: "uko@num.sa",
+            password: "testTransfer"
+        }
+
+        await request(app)
+            .post('/api/v1/users/')
+            .send({
+                name: userOne.name,
+                email: userOne.email,
+                password: userOne.password
+            });
+
+        await request(app)
+            .post('/api/v1/users/')
+            .send({
+                name: "Bernard Butler",
+                email: "sit@nu.do",
+                password: "user2"
+            });
+
+        const userAuthenticate = await request(app)
+            .post('/api/v1/sessions')
+            .send({
+                email: userOne.email,
+                password: userOne.password
+            });
+
+        const { token } = userAuthenticate.body;
+
+        const userTWOAuthenticate = await request(app)
+            .post('/api/v1/sessions')
+            .send({
+                email: "sit@nu.do",
+                password: "user2"
+            });
+
+        const { user: userTWO } = userTWOAuthenticate.body;
+
+        await request(app)
+            .post('/api/v1/statements/deposit')
+            .send({
+                amount: 500,
+                description: 'depositando 500 conto'
+            })
+            .set({
+                Authorization: `Bearer ${token}`
+            });
+
+        const statementTransfer = await request(app)
+            .post(`/api/v1/statements/transfer/${userTWO.id}`)
+            .send({
+                amount: 100,
+                description: 'transferindo 100 conto'
+            })
+            .set({
+                Authorization: `Bearer ${token}`
+            });
+
+        const getBalance = await request(app)
+            .get('/api/v1/statements/balance')
+            .set({
+                Authorization: `Bearer ${token}`
+            });
+
+        expect(statementTransfer.status).toBe(201);
+        expect(statementTransfer.body.type).toBe(OperationType.TRANSFER);
+        expect(getBalance.body.balance).toBe(400);
+        expect(getBalance.body.statement.length).toBe(2); // quantidades de operações realizadas
     });
 
     it("should not be able to create a new operation of deposit if the user is not authenticate", async () => {

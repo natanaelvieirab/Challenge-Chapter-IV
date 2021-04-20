@@ -11,7 +11,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/src/modules/statements/useCases/createStatement/CreateStatementUseCase.ts",
+            "program": "${workspaceFolder}/src/shared/server.ts",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]

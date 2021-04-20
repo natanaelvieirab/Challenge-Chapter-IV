@@ -47,7 +47,7 @@ onde user_id é usuário que vai receber o valor transferido.
 }
 
 **RN**
-[] Não deve ser possível transferir valores superiores ao disponível no saldo de uma conta;
+[x] Não deve ser possível transferir valores superiores ao disponível no saldo de uma conta;
 [] O valor transferido é "tirado" da conta do usuário e o mesmo valor é "adicionado" na conta do usuário que recebeu a transferência.
 
 
@@ -59,3 +59,6 @@ onde user_id é usuário que vai receber o valor transferido.
 
 
 Rodar testes somente do arquivo : yarn test src/modules/statements/useCases/createStatement/CreateStatementUseCase.spec.ts  
+ ## Checklist
+[] Criando statement com a operação de transferencia
+  [] realizar a operação de fato 

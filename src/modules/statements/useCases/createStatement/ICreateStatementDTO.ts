@@ -1,11 +1,12 @@
 
+
 enum OperationType {
   DEPOSIT = 'deposit',
   WITHDRAW = 'withdraw',
   TRANSFER = 'transfer',
 }
 
-export default class ICreateStatementDTO {
+export class ICreateStatementDTO {
   user_id: string;
   description: string;
   amount: number;
