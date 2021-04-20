@@ -51,6 +51,33 @@ describe("Get Balance Controller", () => {
                 Authorization: `Bearer ${token}`
             });
 
+        await request(app)
+            .post('/api/v1/users/')
+            .send({
+                name: "Christina Owens",
+                email: "we@veba.ke",
+                password: "user 2"
+            });
+
+        const userTwoAuthenticate = await request(app)
+            .post('/api/v1/sessions')
+            .send({
+                email: "we@veba.ke",
+                password: "user 2"
+            });
+
+        const { user: userTwo } = userTwoAuthenticate.body;
+
+        const responseStatementTransfer = await request(app)
+            .post(`/api/v1/statements/transfer/${userTwo.id}`)
+            .send({
+                amount: 250,
+                description: 'transferindo 250 conto'
+            })
+            .set({
+                Authorization: `Bearer ${token}`
+            });
+
         const { id: statement_id } = responseStatement.body;
 
         const returnGetBalance = await request(app)
@@ -59,7 +86,7 @@ describe("Get Balance Controller", () => {
                 Authorization: `Bearer ${token}`
             });
 
-        expect(returnGetBalance.body.balance).toBe(500);
+        expect(returnGetBalance.body.balance).toBe(250);
         expect(returnGetBalance.body.statement[0].id).toBe(responseStatement.body.id);
     });
 

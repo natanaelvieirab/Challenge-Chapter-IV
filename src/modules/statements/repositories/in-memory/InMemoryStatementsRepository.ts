@@ -27,17 +27,28 @@ export class InMemoryStatementsRepository implements IStatementsRepository {
   async getUserBalance({ user_id, with_statement = false }: IGetBalanceDTO):
     Promise<
       { balance: number } | { balance: number, statement: Statement[] }
-    >
-  {
-    const statement = this.statements.filter(operation => operation.user_id === user_id);
+    > {
+    const statement = this.statements.filter(
+      operation => operation.user_id === user_id || operation.send_id === user_id
+    );
+    // statement => possui todas as operações no qual o usuário esta envolvido (op é dele ou recebeu grana)
 
     const balance = statement.reduce((acc, operation) => {
       if (operation.type === 'deposit') {
         return acc + operation.amount;
-      } else {
+      }
+      else if (operation.type === 'transfer') {
+        // se o id do usuário estiver no campo send_id, 
+        // então recebeu dinheiro se não, 
+        // ele enviou dinheiro .
+        return operation.send_id === user_id ?
+          acc + operation.amount :
+          acc - operation.amount;
+      }
+      else {
         return acc - operation.amount;
       }
-    }, 0)
+    }, 0);
 
     if (with_statement) {
       return {
